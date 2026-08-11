@@ -1,0 +1,3280 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f6faf4" />
+  <meta name="description" content="Підбір ультразвукового скалера VRN за 5 коротких запитань." />
+  <title>Підбір скалера VRN — 5 запитань</title>
+
+  <!-- Meta Pixel Code -->
+  <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '1019395364056707');
+    fbq('track', 'PageView');
+  </script>
+  <!-- End Meta Pixel Code -->
+
+  <!--
+    VRN QUIZ — single-file MVP
+    1) Upload this file to GitHub Pages as index.html.
+    2) Set CONFIG.webhookUrl near the bottom to connect CRM / Make / Zapier / Telegram backend.
+    3) Meta Pixel 1019395364056707 and funnel events are configured.
+  -->
+
+  <style>
+    :root {
+      --bg: #071213;
+      --bg-soft: #0c1b1d;
+      --surface: rgba(255,255,255,.075);
+      --surface-strong: rgba(255,255,255,.11);
+      --surface-light: #ffffff;
+      --text: #f8fbfb;
+      --muted: #aab9b9;
+      --ink: #122023;
+      --ink-muted: #617173;
+      --accent: #88ff67;
+      --accent-strong: #63df42;
+      --accent-soft: rgba(136,255,103,.14);
+      --cyan: #72e6eb;
+      --danger: #ff6b6b;
+      --line: rgba(255,255,255,.12);
+      --shadow: 0 30px 90px rgba(0,0,0,.36);
+      --radius-lg: 30px;
+      --radius-md: 20px;
+      --radius-sm: 14px;
+      --content: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 14% 8%, rgba(114,230,235,.14), transparent 28%),
+        radial-gradient(circle at 92% 88%, rgba(136,255,103,.11), transparent 30%),
+        linear-gradient(135deg, #061011 0%, #081618 52%, #061112 100%);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    img { max-width: 100%; display: block; }
+    a { color: inherit; }
+
+    .page-shell {
+      min-height: 100vh;
+      position: relative;
+      isolation: isolate;
+    }
+
+    .page-shell::before,
+    .page-shell::after {
+      content: "";
+      position: fixed;
+      z-index: -1;
+      pointer-events: none;
+      border: 1px solid rgba(255,255,255,.05);
+      border-radius: 999px;
+    }
+
+    .page-shell::before {
+      width: 520px;
+      height: 520px;
+      left: -300px;
+      top: 18%;
+    }
+
+    .page-shell::after {
+      width: 660px;
+      height: 660px;
+      right: -390px;
+      bottom: -250px;
+    }
+
+    .topbar {
+      width: min(calc(100% - 36px), var(--content));
+      margin: 0 auto;
+      min-height: 82px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .brand img {
+      width: 116px;
+      height: 40px;
+      object-fit: contain;
+      object-position: left center;
+      filter: brightness(0) invert(1);
+    }
+
+    .brand-fallback {
+      display: none;
+      font-size: 27px;
+      font-weight: 900;
+      letter-spacing: -.055em;
+    }
+
+    .brand-subtitle {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.25;
+      max-width: 145px;
+    }
+
+    .support-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color .2s ease;
+    }
+
+    .support-link:hover { color: var(--text); }
+
+    .support-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 6px rgba(136,255,103,.1);
+    }
+
+    .main {
+      width: min(calc(100% - 36px), var(--content));
+      margin: 0 auto;
+      padding: 28px 0 56px;
+    }
+
+    .screen { display: none; }
+    .screen.is-active { display: block; animation: enter .42s ease both; }
+
+    @keyframes enter {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .intro-grid {
+      min-height: calc(100vh - 166px);
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(380px, .95fr);
+      align-items: center;
+      gap: clamp(38px, 6vw, 88px);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 13px;
+      border-radius: 999px;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border: 1px solid rgba(136,255,103,.19);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 15px currentColor;
+    }
+
+    h1 {
+      max-width: 740px;
+      margin: 24px 0 22px;
+      font-size: clamp(42px, 6vw, 78px);
+      line-height: .99;
+      letter-spacing: -.062em;
+      font-weight: 850;
+    }
+
+    .accent-text { color: var(--accent); }
+
+    .lead {
+      max-width: 630px;
+      margin: 0;
+      color: #c5d1d1;
+      font-size: clamp(17px, 2vw, 21px);
+      line-height: 1.55;
+    }
+
+    .intro-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 34px;
+      flex-wrap: wrap;
+    }
+
+    .primary-btn,
+    .secondary-btn {
+      min-height: 58px;
+      border: 0;
+      border-radius: 16px;
+      padding: 0 23px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-weight: 800;
+      transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+
+    .primary-btn {
+      color: #10210c;
+      background: var(--accent);
+      box-shadow: 0 16px 40px rgba(99,223,66,.2);
+    }
+
+    .primary-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 48px rgba(99,223,66,.29);
+      background: #9aff7e;
+    }
+
+    .primary-btn:active,
+    .secondary-btn:active { transform: translateY(0); }
+
+    .primary-btn:disabled {
+      cursor: not-allowed;
+      opacity: .5;
+      box-shadow: none;
+    }
+
+    .secondary-btn {
+      min-height: 50px;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--line);
+    }
+
+    .secondary-btn:hover { background: var(--surface-strong); }
+
+    .button-arrow { font-size: 20px; line-height: 1; }
+
+    .intro-meta {
+      display: flex;
+      gap: 24px;
+      margin-top: 30px;
+      color: var(--muted);
+      font-size: 13px;
+      flex-wrap: wrap;
+    }
+
+    .intro-meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .intro-meta svg { color: var(--accent); flex: none; }
+
+    .visual-card {
+      position: relative;
+      min-height: 560px;
+      border-radius: 38px;
+      background:
+        radial-gradient(circle at 72% 18%, rgba(114,230,235,.16), transparent 30%),
+        linear-gradient(160deg, rgba(255,255,255,.105), rgba(255,255,255,.035));
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .visual-card::before {
+      content: "";
+      position: absolute;
+      inset: 44px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.045);
+      border: 1px solid rgba(255,255,255,.07);
+      z-index: -1;
+    }
+
+    .visual-orbit {
+      position: absolute;
+      width: 430px;
+      height: 430px;
+      border: 1px solid rgba(136,255,103,.16);
+      border-radius: 50%;
+      left: 50%;
+      top: 47%;
+      transform: translate(-50%,-50%);
+      z-index: -1;
+    }
+
+    .visual-orbit::after {
+      content: "";
+      width: 10px;
+      height: 10px;
+      position: absolute;
+      top: 38px;
+      right: 70px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 18px var(--accent);
+    }
+
+    .product-stage {
+      position: absolute;
+      inset: 68px 40px 112px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hero-product {
+      width: min(100%, 540px);
+      max-height: 420px;
+      object-fit: contain;
+      filter: drop-shadow(0 30px 36px rgba(0,0,0,.38));
+      animation: float 3.6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate3d(-5px, 8px, 0) rotate(-2deg); }
+      50% { transform: translate3d(6px, -24px, 0) rotate(2deg); }
+    }
+
+    .model-tabs {
+      position: absolute;
+      left: 26px;
+      right: 26px;
+      bottom: 25px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      padding: 7px;
+      border-radius: 18px;
+      background: rgba(4,12,13,.68);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,.1);
+    }
+
+    .model-tab {
+      min-height: 55px;
+      border: 0;
+      border-radius: 13px;
+      color: var(--muted);
+      background: transparent;
+      font-size: 13px;
+      font-weight: 800;
+      transition: .2s ease;
+    }
+
+    .model-tab.is-active {
+      color: #10210c;
+      background: var(--accent);
+    }
+
+    .floating-proof {
+      position: absolute;
+      top: 24px;
+      left: 24px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: rgba(4,12,13,.72);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 15px;
+      backdrop-filter: blur(12px);
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .proof-icon {
+      width: 29px;
+      height: 29px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .quiz-layout {
+      min-height: calc(100vh - 166px);
+      display: grid;
+      grid-template-columns: 240px minmax(0, 1fr);
+      gap: 34px;
+      align-items: stretch;
+    }
+
+    .quiz-sidebar {
+      padding: 26px 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .progress-label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 13px;
+    }
+
+    .progress-count {
+      color: var(--text);
+      font-weight: 800;
+    }
+
+    .progress-track {
+      height: 8px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255,255,255,.09);
+    }
+
+    .progress-fill {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--cyan));
+      transition: width .35s ease;
+    }
+
+    .sidebar-benefits {
+      display: grid;
+      gap: 14px;
+      margin-top: 38px;
+    }
+
+    .sidebar-benefit {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 11px;
+      align-items: start;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .sidebar-benefit i {
+      width: 34px;
+      height: 34px;
+      border-radius: 11px;
+      display: grid;
+      place-items: center;
+      font-style: normal;
+      color: var(--accent);
+      background: var(--accent-soft);
+      font-weight: 900;
+    }
+
+    .sidebar-note {
+      color: #758687;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .quiz-card {
+      min-height: 650px;
+      padding: clamp(28px, 5vw, 62px);
+      border-radius: var(--radius-lg);
+      background: rgba(255,255,255,.965);
+      color: var(--ink);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .quiz-card::after {
+      content: "";
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      right: -190px;
+      top: -190px;
+      background: rgba(136,255,103,.18);
+      pointer-events: none;
+    }
+
+    .question-slide { display: none; }
+    .question-slide.is-active { display: block; animation: questionIn .32s ease both; }
+
+    @keyframes questionIn {
+      from { opacity: 0; transform: translateX(12px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .question-number {
+      color: #829091;
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .question-title {
+      margin: 13px 0 10px;
+      max-width: 780px;
+      font-size: clamp(29px, 4vw, 48px);
+      line-height: 1.05;
+      letter-spacing: -.045em;
+    }
+
+    .question-hint {
+      max-width: 700px;
+      margin: 0 0 28px;
+      color: var(--ink-muted);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 12px;
+    }
+
+    .option {
+      position: relative;
+      min-height: 76px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 15px 16px;
+      border: 1px solid #dbe2e2;
+      border-radius: 17px;
+      background: #fff;
+      color: var(--ink);
+      text-align: left;
+      transition: border-color .2s ease, background .2s ease, transform .2s ease, box-shadow .2s ease;
+    }
+
+    .option:hover {
+      transform: translateY(-2px);
+      border-color: #aebcbc;
+      box-shadow: 0 12px 28px rgba(18,32,35,.07);
+    }
+
+    .option.is-selected {
+      border-color: #65d946;
+      background: #f3fff0;
+      box-shadow: 0 0 0 3px rgba(101,217,70,.12);
+    }
+
+    .option-icon {
+      width: 43px;
+      height: 43px;
+      flex: 0 0 43px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      color: #3f5052;
+      background: #eef3f3;
+      font-weight: 900;
+      font-size: 14px;
+      transition: .2s ease;
+    }
+
+    .option.is-selected .option-icon {
+      color: #1b5510;
+      background: #dffff4;
+    }
+
+    .option-text {
+      font-size: 15px;
+      line-height: 1.35;
+      font-weight: 760;
+    }
+
+    .option-check {
+      margin-left: auto;
+      width: 22px;
+      height: 22px;
+      flex: 0 0 22px;
+      border-radius: 50%;
+      border: 1.5px solid #c4cecf;
+      display: grid;
+      place-items: center;
+      color: transparent;
+      font-size: 12px;
+      transition: .2s ease;
+    }
+
+    .option.is-selected .option-check {
+      color: #143c0c;
+      border-color: var(--accent-strong);
+      background: var(--accent);
+    }
+
+    .quiz-nav {
+      margin-top: auto;
+      padding-top: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .back-btn {
+      min-height: 52px;
+      padding: 0 16px;
+      border: 0;
+      background: transparent;
+      color: #657476;
+      font-weight: 750;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .back-btn:hover { color: var(--ink); }
+    .back-btn[hidden] { display: none; }
+
+    .next-btn {
+      min-width: 168px;
+      min-height: 54px;
+      border-radius: 15px;
+      border: 0;
+      color: #10210c;
+      background: var(--accent);
+      font-weight: 850;
+      box-shadow: 0 12px 28px rgba(99,223,66,.21);
+      transition: .2s ease;
+    }
+
+    .next-btn:hover:not(:disabled) { transform: translateY(-2px); background: #9aff7e; }
+    .next-btn:disabled { opacity: .42; cursor: not-allowed; box-shadow: none; }
+
+    .contact-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 760px);
+      justify-content: center;
+      gap: 0;
+      align-items: stretch;
+    }
+
+    .contact-summary {
+      padding: 28px;
+      border-radius: 24px;
+      background: #0b1719;
+      color: var(--text);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .contact-summary::after {
+      content: "";
+      position: absolute;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      right: -110px;
+      bottom: -140px;
+      background: rgba(136,255,103,.12);
+    }
+
+    .summary-kicker {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .summary-title {
+      margin: 13px 0 16px;
+      font-size: 31px;
+      line-height: 1.08;
+      letter-spacing: -.04em;
+    }
+
+    .summary-text {
+      color: #b9c7c8;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .summary-list {
+      display: grid;
+      gap: 12px;
+      margin: 23px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .summary-list li {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      color: #dce5e5;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .summary-list li::before {
+      content: "✓";
+      width: 20px;
+      height: 20px;
+      flex: 0 0 20px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #173b10;
+      background: var(--accent);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .contact-form {
+      display: grid;
+      gap: 15px;
+      align-content: start;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 13px;
+    }
+
+    .field { display: grid; gap: 7px; }
+
+    .field label {
+      font-size: 12px;
+      color: #5e6d6f;
+      font-weight: 800;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      min-height: 54px;
+      border-radius: 14px;
+      border: 1px solid #d8e0e1;
+      background: #fff;
+      color: var(--ink);
+      padding: 0 15px;
+      outline: none;
+      transition: border-color .2s ease, box-shadow .2s ease;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--accent-strong);
+      box-shadow: 0 0 0 4px rgba(99,223,66,.12);
+    }
+
+    .field input.is-invalid {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 4px rgba(255,107,107,.1);
+    }
+
+    .checkbox-line {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      color: #6d7a7c;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .checkbox-line input {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      accent-color: var(--accent-strong);
+      flex: 0 0 18px;
+    }
+
+    .form-submit {
+      min-height: 58px;
+      border: 0;
+      border-radius: 16px;
+      color: #10210c;
+      background: var(--accent);
+      font-weight: 850;
+      box-shadow: 0 14px 32px rgba(99,223,66,.2);
+      transition: .2s ease;
+    }
+
+    .form-submit:hover { transform: translateY(-2px); background: #9aff7e; }
+    .form-submit:disabled { opacity: .55; cursor: wait; transform: none; }
+
+    .form-note {
+      color: #859294;
+      font-size: 11px;
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    .form-error {
+      min-height: 18px;
+      color: #cb4141;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .result-shell {
+      max-width: 980px;
+      margin: 12px auto 0;
+    }
+
+    .result-topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    .result-topline p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .result-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(330px, .8fr);
+      border-radius: 34px;
+      overflow: hidden;
+      background: #fff;
+      color: var(--ink);
+      box-shadow: var(--shadow);
+    }
+
+    .result-copy {
+      padding: clamp(30px, 5vw, 58px);
+    }
+
+    .result-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 11px;
+      border-radius: 999px;
+      color: #256514;
+      background: #ebffe6;
+      font-size: 11px;
+      font-weight: 850;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .result-title {
+      margin: 17px 0 8px;
+      font-size: clamp(42px, 6vw, 66px);
+      line-height: 1;
+      letter-spacing: -.055em;
+    }
+
+    .result-price {
+      font-size: 19px;
+      font-weight: 850;
+      color: #59696b;
+    }
+
+    .result-description {
+      max-width: 570px;
+      margin: 22px 0 24px;
+      color: #5d6c6e;
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    .feature-list {
+      margin: 0 0 28px;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 11px 16px;
+    }
+
+    .feature-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      font-size: 13px;
+      line-height: 1.4;
+      font-weight: 700;
+    }
+
+    .feature-list li::before {
+      content: "✓";
+      color: #3dab25;
+      font-weight: 950;
+    }
+
+    .result-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .result-link {
+      min-height: 54px;
+      border-radius: 15px;
+      padding: 0 19px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+      font-weight: 830;
+    }
+
+    .result-link.primary {
+      color: #10210c;
+      background: var(--accent);
+    }
+
+    .result-link.secondary {
+      border: 1px solid #d8e0e1;
+      color: var(--ink);
+      background: #fff;
+    }
+
+    .result-visual {
+      min-height: 560px;
+      padding: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(circle at 50% 45%, rgba(114,230,235,.18), transparent 38%),
+        linear-gradient(150deg, #0b191b, #071112);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .result-visual::before {
+      content: "";
+      position: absolute;
+      width: 390px;
+      height: 390px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,.08);
+    }
+
+    .result-product-image {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-height: 430px;
+      object-fit: contain;
+      filter: drop-shadow(0 30px 35px rgba(0,0,0,.42));
+    }
+
+    .alternative-card {
+      margin-top: 18px;
+      padding: 20px 22px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: center;
+      border-radius: 20px;
+      background: rgba(255,255,255,.075);
+      border: 1px solid rgba(255,255,255,.1);
+    }
+
+    .alternative-card strong { display: block; margin-bottom: 5px; }
+    .alternative-card span { color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .alternative-card a { color: var(--accent); text-decoration: none; font-weight: 800; white-space: nowrap; }
+
+    .footer-note {
+      width: min(calc(100% - 36px), var(--content));
+      margin: 0 auto;
+      padding: 0 0 24px;
+      color: #627273;
+      font-size: 11px;
+      text-align: center;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      z-index: 20;
+      transform: translate(-50%, 20px);
+      padding: 12px 16px;
+      border-radius: 12px;
+      color: #fff;
+      background: #1d292a;
+      box-shadow: 0 16px 46px rgba(0,0,0,.32);
+      opacity: 0;
+      pointer-events: none;
+      transition: .25s ease;
+      font-size: 13px;
+    }
+
+    .toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 960px) {
+      .intro-grid { grid-template-columns: 1fr; min-height: auto; }
+      .intro-copy { padding-top: 32px; }
+      .visual-card { min-height: 510px; }
+      .quiz-layout { grid-template-columns: 1fr; gap: 16px; }
+      .quiz-sidebar {
+        padding: 14px 16px;
+        display: block;
+        position: sticky;
+        top: 10px;
+        z-index: 6;
+        border-radius: 18px;
+        background: rgba(7,18,19,.86);
+        border: 1px solid rgba(255,255,255,.08);
+        backdrop-filter: blur(14px);
+      }
+      .progress-label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+      .sidebar-benefits, .sidebar-note { display: none; }
+      .quiz-card { min-height: 620px; }
+      .contact-layout { grid-template-columns: 1fr; }
+      .result-card { grid-template-columns: 1fr; }
+      .result-visual { min-height: 430px; order: -1; }
+    }
+
+    @media (max-width: 640px) {
+      .topbar {
+        min-height: 68px;
+        width: min(calc(100% - 24px), var(--content));
+        position: sticky;
+        top: 0;
+        z-index: 15;
+        margin-top: 0;
+        padding: calc(8px + env(safe-area-inset-top)) 0 8px;
+        backdrop-filter: blur(18px);
+      }
+      .brand img { width: 92px; }
+      .brand-subtitle, .support-link span:not(.support-dot) { display: none; }
+      .main { width: min(calc(100% - 20px), var(--content)); padding: 8px 0 34px; }
+      .intro-grid { gap: 28px; }
+      h1 { font-size: clamp(40px, 13vw, 58px); }
+      .lead { font-size: 16px; }
+      .primary-btn { width: 100%; }
+      .secondary-btn { width: 100%; }
+      .intro-meta { gap: 12px; display: grid; }
+      .visual-card { min-height: 440px; border-radius: 25px; }
+      .product-stage { inset: 55px 15px 112px; }
+      .floating-proof { top: 15px; left: 15px; right: 15px; max-width: fit-content; }
+      .visual-orbit { width: 330px; height: 330px; }
+      .model-tabs {
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        gap: 6px;
+        grid-template-columns: repeat(2, 1fr);
+        padding: 8px;
+      }
+      .model-tab { min-height: 48px; font-size: 11px; }
+      .quiz-sidebar {
+        top: 8px;
+        padding: 12px 14px;
+        border-radius: 16px;
+      }
+      .quiz-card {
+        min-height: auto;
+        padding: 22px 16px calc(108px + env(safe-area-inset-bottom));
+        border-radius: 24px;
+      }
+      .question-title { font-size: 30px; }
+      .question-hint { margin-bottom: 21px; font-size: 14px; }
+      .options-grid { grid-template-columns: 1fr; gap: 9px; }
+      .option { min-height: 67px; padding: 12px 12px; border-radius: 14px; }
+      .option-icon { width: 38px; height: 38px; flex-basis: 38px; }
+      .option-text { font-size: 14px; }
+      .quiz-nav {
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        bottom: max(10px, env(safe-area-inset-bottom));
+        z-index: 20;
+        padding: 12px;
+        border-radius: 18px;
+        background: rgba(255,255,255,.96);
+        border: 1px solid rgba(18,32,35,.08);
+        box-shadow: 0 18px 50px rgba(7,18,19,.16);
+        backdrop-filter: blur(18px);
+      }
+      .back-btn {
+        min-height: 50px;
+        padding: 0 14px;
+        background: #f3f7f7;
+        border-radius: 14px;
+      }
+      .next-btn { min-width: 148px; flex: 1; }
+      .contact-summary { padding: 22px; }
+      .summary-title { font-size: 27px; }
+      .field-row { grid-template-columns: 1fr; }
+      .result-shell { margin-top: 0; }
+      .result-topline { align-items: flex-start; flex-direction: column; }
+      .result-card { border-radius: 25px; }
+      .result-visual { min-height: 360px; padding: 18px; }
+      .result-copy { padding: 28px 20px; }
+      .result-title { font-size: 47px; }
+      .feature-list { grid-template-columns: 1fr; }
+      .result-link { width: 100%; }
+      .alternative-card { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 420px) {
+      h1 { font-size: 38px; }
+      .question-title { font-size: 28px; }
+      .summary-title { font-size: 24px; }
+      .result-title { font-size: 40px; }
+      .floating-proof { padding: 10px 12px; font-size: 11px; }
+      .hero-product { max-height: 250px; }
+      .result-visual { min-height: 320px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+    }
+
+
+    /* =========================================================
+       VRN QUIZ V2 — PREMIUM VISUAL SYSTEM
+       ========================================================= */
+    :root {
+      --bg: #050808;
+      --bg-soft: #0a0f10;
+      --surface: rgba(255,255,255,.055);
+      --surface-strong: rgba(255,255,255,.095);
+      --text: #f4f7f3;
+      --muted: #95a39f;
+      --ink: #f4f7f3;
+      --ink-muted: #9ba8a5;
+      --accent: #96ff72;
+      --accent-strong: #72e64e;
+      --accent-soft: rgba(150,255,114,.12);
+      --cyan: #7de3dc;
+      --line: rgba(255,255,255,.10);
+      --shadow: 0 40px 110px rgba(0,0,0,.48);
+      --radius-lg: 32px;
+      --radius-md: 20px;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 15% 12%, rgba(125,227,220,.10), transparent 25%),
+        radial-gradient(circle at 86% 72%, rgba(150,255,114,.09), transparent 29%),
+        linear-gradient(145deg, #040707 0%, #071011 52%, #040707 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      pointer-events: none;
+      opacity: .26;
+      background-image:
+        linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+      background-size: 54px 54px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,.82), transparent 92%);
+    }
+
+    .page-shell::before,
+    .page-shell::after {
+      border: 0;
+      filter: blur(70px);
+      opacity: .8;
+    }
+
+    .page-shell::before {
+      width: 420px;
+      height: 420px;
+      left: -250px;
+      top: 10%;
+      background: rgba(125,227,220,.12);
+    }
+
+    .page-shell::after {
+      width: 520px;
+      height: 520px;
+      right: -320px;
+      bottom: -180px;
+      background: rgba(150,255,114,.10);
+    }
+
+    .topbar {
+      min-height: 70px;
+      margin-top: 16px;
+      padding: 0 18px;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 22px;
+      background: rgba(8,13,14,.68);
+      backdrop-filter: blur(22px);
+      box-shadow: 0 18px 50px rgba(0,0,0,.20);
+    }
+
+    .brand img {
+      width: 110px;
+      opacity: .96;
+    }
+
+    .brand-subtitle {
+      color: #82908d;
+      letter-spacing: .02em;
+    }
+
+    .support-link {
+      color: #b6c0bd;
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .support-dot {
+      width: 7px;
+      height: 7px;
+      box-shadow: 0 0 0 6px rgba(150,255,114,.08), 0 0 22px rgba(150,255,114,.6);
+    }
+
+    .main { padding-top: 38px; }
+
+    .intro-grid {
+      min-height: calc(100vh - 150px);
+      grid-template-columns: minmax(0, .96fr) minmax(430px, 1.04fr);
+      gap: clamp(42px, 6vw, 92px);
+    }
+
+    .intro-copy { position: relative; z-index: 2; }
+
+    .eyebrow {
+      padding: 9px 13px;
+      color: #bdffab;
+      background: rgba(150,255,114,.07);
+      border-color: rgba(150,255,114,.18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+      letter-spacing: .12em;
+    }
+
+    h1 {
+      margin: 28px 0 24px;
+      max-width: 760px;
+      font-size: clamp(46px, 5.55vw, 76px);
+      line-height: .98;
+      letter-spacing: -.066em;
+      font-weight: 820;
+      text-wrap: balance;
+    }
+
+    .accent-text {
+      color: var(--accent);
+      text-shadow: 0 0 34px rgba(150,255,114,.12);
+    }
+
+    .lead {
+      max-width: 610px;
+      color: #aeb9b6;
+      font-size: clamp(17px, 1.65vw, 20px);
+      line-height: 1.58;
+    }
+
+    .intro-actions { margin-top: 36px; }
+
+    .primary-btn,
+    .form-submit,
+    .next-btn,
+    .result-link.primary {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.22);
+      color: #0b1409;
+      background: linear-gradient(135deg, #b3ff9b 0%, #8cf767 55%, #77e955 100%);
+      box-shadow:
+        0 16px 38px rgba(114,230,78,.18),
+        inset 0 1px 0 rgba(255,255,255,.65);
+    }
+
+    .primary-btn::after,
+    .form-submit::after,
+    .next-btn::after {
+      content: "";
+      position: absolute;
+      top: -130%;
+      left: -35%;
+      width: 30%;
+      height: 360%;
+      transform: rotate(24deg);
+      background: rgba(255,255,255,.28);
+      transition: left .55s ease;
+      pointer-events: none;
+    }
+
+    .primary-btn:hover::after,
+    .form-submit:hover::after,
+    .next-btn:hover::after { left: 115%; }
+
+    .primary-btn {
+      min-height: 62px;
+      padding: 0 27px;
+      border-radius: 18px;
+      letter-spacing: -.01em;
+    }
+
+    .intro-meta {
+      margin-top: 34px;
+      gap: 10px;
+      color: #b5bfbc;
+    }
+
+    .intro-meta span {
+      min-height: 42px;
+      padding: 0 13px;
+      border-radius: 13px;
+      border: 1px solid rgba(255,255,255,.075);
+      background: rgba(255,255,255,.035);
+      backdrop-filter: blur(12px);
+      font-size: 12px;
+    }
+
+    .visual-card {
+      min-height: 620px;
+      border-radius: 38px;
+      border: 1px solid rgba(255,255,255,.105);
+      background:
+        radial-gradient(circle at 52% 36%, rgba(150,255,114,.11), transparent 31%),
+        radial-gradient(circle at 78% 13%, rgba(125,227,220,.10), transparent 25%),
+        linear-gradient(155deg, rgba(20,29,30,.92), rgba(7,11,12,.98));
+      box-shadow:
+        0 45px 110px rgba(0,0,0,.48),
+        inset 0 1px 0 rgba(255,255,255,.08);
+    }
+
+    .visual-card::before {
+      inset: 64px 48px 124px;
+      border-radius: 38px;
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.012));
+      border-color: rgba(255,255,255,.07);
+    }
+
+    .visual-card::after {
+      content: "";
+      position: absolute;
+      inset: 0 68px auto;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(150,255,114,.82), transparent);
+      box-shadow: 0 0 22px rgba(150,255,114,.5);
+    }
+
+    .visual-orbit {
+      width: 470px;
+      height: 470px;
+      border-color: rgba(150,255,114,.12);
+      box-shadow: inset 0 0 80px rgba(150,255,114,.025);
+    }
+
+    .visual-orbit::before {
+      content: "";
+      position: absolute;
+      inset: 42px;
+      border-radius: 50%;
+      border: 1px dashed rgba(255,255,255,.07);
+    }
+
+    .product-stage {
+      inset: 76px 36px 148px;
+    }
+
+    .product-stage::after {
+      content: "";
+      position: absolute;
+      left: 13%;
+      right: 13%;
+      bottom: 4%;
+      height: 42px;
+      border-radius: 50%;
+      background: rgba(0,0,0,.56);
+      filter: blur(18px);
+      z-index: -1;
+    }
+
+    .hero-product {
+      width: min(100%, 590px);
+      max-height: 450px;
+      filter: drop-shadow(0 35px 40px rgba(0,0,0,.46));
+    }
+
+    .floating-proof {
+      top: 22px;
+      left: 22px;
+      padding: 11px 13px;
+      color: #d8e0dd;
+      background: rgba(6,10,11,.68);
+      border-color: rgba(255,255,255,.09);
+      box-shadow: 0 16px 32px rgba(0,0,0,.18);
+    }
+
+    .proof-icon {
+      color: #0f210a;
+      background: var(--accent);
+      box-shadow: 0 0 18px rgba(150,255,114,.2);
+    }
+
+    .visual-model-meta {
+      position: absolute;
+      top: 25px;
+      right: 24px;
+      z-index: 3;
+      display: grid;
+      justify-items: end;
+      gap: 3px;
+      text-align: right;
+    }
+
+    .visual-model-meta span:first-child {
+      color: #71807d;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .visual-model-meta strong {
+      font-size: 22px;
+      line-height: 1;
+      letter-spacing: -.04em;
+    }
+
+    .visual-model-meta span:last-child {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .visual-specs {
+      position: absolute;
+      left: 27px;
+      right: 27px;
+      bottom: 98px;
+      z-index: 3;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .visual-spec {
+      min-height: 48px;
+      display: grid;
+      align-content: center;
+      gap: 2px;
+      padding: 8px 11px;
+      border-radius: 13px;
+      color: #86938f;
+      background: rgba(255,255,255,.035);
+      border: 1px solid rgba(255,255,255,.065);
+      font-size: 9px;
+      line-height: 1.2;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .visual-spec b {
+      color: #edf2ef;
+      font-size: 12px;
+      letter-spacing: -.01em;
+      text-transform: none;
+    }
+
+    .model-tabs {
+      left: 26px;
+      right: 26px;
+      bottom: 24px;
+      gap: 7px;
+      padding: 6px;
+      border-radius: 17px;
+      background: rgba(2,6,7,.76);
+      border-color: rgba(255,255,255,.08);
+      box-shadow: 0 18px 34px rgba(0,0,0,.22);
+    }
+
+    .model-tab {
+      min-height: 48px;
+      border: 1px solid transparent;
+      color: #7f8d89;
+      font-size: 12px;
+      letter-spacing: .02em;
+    }
+
+    .model-tab:hover {
+      color: #d9e0dd;
+      background: rgba(255,255,255,.035);
+    }
+
+    .model-tab.is-active {
+      color: #eaf4e6;
+      background: rgba(150,255,114,.10);
+      border-color: rgba(150,255,114,.24);
+      box-shadow: inset 0 0 0 1px rgba(150,255,114,.04);
+    }
+
+    .quiz-layout {
+      grid-template-columns: 226px minmax(0, 1fr);
+      gap: 30px;
+    }
+
+    .quiz-sidebar {
+      padding: 30px 4px 20px;
+    }
+
+    .progress-label {
+      color: #778682;
+      letter-spacing: .025em;
+    }
+
+    .progress-count { color: #eef3f0; }
+
+    .progress-track {
+      height: 5px;
+      background: rgba(255,255,255,.065);
+    }
+
+    .progress-fill {
+      background: linear-gradient(90deg, #8ef46b, #92f6dd);
+      box-shadow: 0 0 18px rgba(150,255,114,.22);
+    }
+
+    .sidebar-benefit {
+      color: #899793;
+      font-size: 12px;
+    }
+
+    .sidebar-benefit i {
+      color: #b9ffa5;
+      background: rgba(150,255,114,.065);
+      border: 1px solid rgba(150,255,114,.12);
+      font-size: 10px;
+      letter-spacing: .05em;
+    }
+
+    .quiz-card {
+      min-height: 650px;
+      padding: clamp(30px, 5vw, 64px);
+      color: #f2f5f2;
+      background:
+        linear-gradient(155deg, rgba(19,27,28,.97), rgba(9,14,15,.98));
+      border: 1px solid rgba(255,255,255,.085);
+      box-shadow: 0 38px 100px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.045);
+    }
+
+    .quiz-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(125deg, rgba(255,255,255,.035), transparent 24%);
+    }
+
+    .quiz-card::after {
+      width: 360px;
+      height: 360px;
+      right: -245px;
+      top: -245px;
+      background: rgba(150,255,114,.10);
+      filter: blur(12px);
+    }
+
+    .question-number { color: #7a8985; }
+
+    .question-title {
+      color: #f4f7f4;
+      font-weight: 790;
+      letter-spacing: -.05em;
+      text-wrap: balance;
+    }
+
+    .question-hint { color: #91a09c; }
+
+    .option {
+      min-height: 78px;
+      color: #e7ece9;
+      background: rgba(255,255,255,.035);
+      border-color: rgba(255,255,255,.09);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.018);
+    }
+
+    .option:hover {
+      transform: translateY(-2px);
+      color: #fff;
+      border-color: rgba(255,255,255,.18);
+      background: rgba(255,255,255,.055);
+      box-shadow: 0 14px 30px rgba(0,0,0,.18);
+    }
+
+    .option.is-selected {
+      color: #f1faed;
+      border-color: rgba(150,255,114,.50);
+      background: linear-gradient(135deg, rgba(150,255,114,.13), rgba(150,255,114,.055));
+      box-shadow: 0 0 0 3px rgba(150,255,114,.06), inset 0 1px 0 rgba(255,255,255,.03);
+    }
+
+    .option-icon {
+      color: #97a49f;
+      background: rgba(255,255,255,.055);
+      border: 1px solid rgba(255,255,255,.055);
+    }
+
+    .option.is-selected .option-icon {
+      color: #14210f;
+      background: var(--accent);
+      border-color: transparent;
+    }
+
+    .option-check { border-color: rgba(255,255,255,.22); }
+
+    .option.is-selected .option-check {
+      color: #11210d;
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .quiz-nav { position: relative; z-index: 2; }
+
+    .back-btn {
+      color: #84928e;
+    }
+
+    .back-btn:hover { color: #f2f5f2; }
+
+    .next-btn { border-radius: 16px; }
+
+    .contact-summary {
+      color: #eff4f0;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(150,255,114,.11), transparent 34%),
+        linear-gradient(145deg, #111a18, #0a1111);
+      border: 1px solid rgba(150,255,114,.10);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+    }
+
+    .summary-kicker { color: #a8ff90; }
+    .summary-text { color: #9daba7; }
+    .summary-list li { color: #d8e0dc; }
+
+    .field label { color: #95a39f; }
+
+    .field input,
+    .field select {
+      color: #eef3f0;
+      background: rgba(255,255,255,.035);
+      border-color: rgba(255,255,255,.10);
+      color-scheme: dark;
+    }
+
+    .field input::placeholder { color: #66736f; }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: rgba(150,255,114,.62);
+      box-shadow: 0 0 0 4px rgba(150,255,114,.075);
+    }
+
+    .checkbox-line { color: #7e8d89; }
+    .form-note { color: #6f7d79; }
+    .form-error { color: #ff8c8c; }
+
+    .result-shell { max-width: 1040px; }
+
+    .result-card {
+      color: #f2f5f2;
+      background: linear-gradient(145deg, #111718, #090d0e);
+      border: 1px solid rgba(255,255,255,.085);
+      box-shadow: 0 40px 110px rgba(0,0,0,.46), inset 0 1px 0 rgba(255,255,255,.035);
+    }
+
+    .result-badge {
+      color: #b8ffa4;
+      background: rgba(150,255,114,.075);
+      border: 1px solid rgba(150,255,114,.16);
+    }
+
+    .result-price { color: #a8b4b0; }
+
+    .manager-followup {
+      margin: 22px 0 20px;
+      padding: 16px 17px;
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr);
+      gap: 13px;
+      align-items: start;
+      border-radius: 17px;
+      color: #eaf3e7;
+      background: linear-gradient(135deg, rgba(150,255,114,.12), rgba(150,255,114,.045));
+      border: 1px solid rgba(150,255,114,.22);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+    }
+
+    .manager-followup-icon {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      color: #14210f;
+      background: var(--accent);
+      font-size: 18px;
+      font-weight: 950;
+      box-shadow: 0 10px 25px rgba(150,255,114,.13);
+    }
+
+    .manager-followup strong {
+      display: block;
+      margin: 1px 0 4px;
+      color: #f3f8f1;
+      font-size: 15px;
+    }
+
+    .manager-followup p {
+      margin: 0;
+      color: #aab8b3;
+      font-size: 13px;
+      line-height: 1.52;
+    }
+
+    .result-description { color: #99a7a3; }
+    .feature-list li { color: #dbe2df; }
+    .feature-list li::before { color: var(--accent); }
+
+    .result-link.secondary {
+      color: #e8eeeb;
+      background: rgba(255,255,255,.035);
+      border-color: rgba(255,255,255,.11);
+    }
+
+    .result-link.secondary:hover { background: rgba(255,255,255,.065); }
+
+    .result-visual {
+      background:
+        radial-gradient(circle at 50% 42%, rgba(150,255,114,.13), transparent 36%),
+        radial-gradient(circle at 80% 15%, rgba(125,227,220,.08), transparent 28%),
+        linear-gradient(150deg, #111a1b, #060909);
+      border-left: 1px solid rgba(255,255,255,.065);
+    }
+
+    .result-visual::before {
+      border-color: rgba(150,255,114,.10);
+      box-shadow: inset 0 0 80px rgba(150,255,114,.02);
+    }
+
+    .alternative-card {
+      background: rgba(255,255,255,.035);
+      border-color: rgba(255,255,255,.075);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.02);
+    }
+
+    .footer-note { color: #53615e; }
+
+    @media (max-width: 960px) {
+      .topbar { width: min(calc(100% - 28px), var(--content)); }
+      .intro-grid { grid-template-columns: 1fr; }
+      .quiz-layout { grid-template-columns: 1fr; gap: 14px; }
+      .intro-copy { max-width: 780px; }
+      .visual-card { min-height: 570px; }
+      .quiz-sidebar {
+        background: rgba(8,13,14,.88);
+        border-color: rgba(255,255,255,.08);
+      }
+      .result-visual { border-left: 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+    }
+
+    @media (max-width: 640px) {
+      body::before { background-size: 38px 38px; opacity: .18; }
+
+      .topbar {
+        width: calc(100% - 20px);
+        min-height: 60px;
+        margin-top: 8px;
+        padding: calc(5px + env(safe-area-inset-top)) 13px 5px;
+        border-radius: 17px;
+        background: rgba(7,11,12,.82);
+      }
+
+      .main { padding-top: 16px; }
+      .intro-grid { gap: 24px; }
+      .intro-copy { padding-top: 12px; }
+      h1 { margin: 20px 0 18px; font-size: clamp(39px, 12vw, 53px); }
+      .lead { font-size: 15.5px; }
+      .intro-actions { margin-top: 26px; }
+      .primary-btn { min-height: 58px; }
+
+      .intro-meta {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 7px;
+        margin-top: 22px;
+      }
+
+      .intro-meta span { min-height: 40px; }
+
+      .visual-card {
+        min-height: 480px;
+        border-radius: 27px;
+      }
+
+      .visual-card::before { inset: 58px 18px 158px; border-radius: 26px; }
+      .visual-card::after { inset-inline: 38px; }
+      .product-stage { inset: 78px 10px 165px; }
+      .hero-product { max-height: 278px; }
+      .visual-orbit { width: 330px; height: 330px; }
+
+      .floating-proof {
+        top: 13px;
+        left: 13px;
+        right: auto;
+        max-width: 188px;
+        padding: 9px 10px;
+        font-size: 10px;
+      }
+
+      .proof-icon { width: 27px; height: 27px; }
+
+      .visual-model-meta {
+        top: 17px;
+        right: 14px;
+      }
+
+      .visual-model-meta strong { font-size: 18px; }
+      .visual-model-meta span:first-child { display: none; }
+
+      .visual-specs {
+        left: 13px;
+        right: 13px;
+        bottom: 116px;
+        gap: 5px;
+      }
+
+      .visual-spec {
+        min-height: 42px;
+        padding: 7px 8px;
+        font-size: 7px;
+      }
+
+      .visual-spec b { font-size: 10px; }
+
+      .model-tabs {
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 5px;
+        padding: 6px;
+      }
+
+      .model-tab { min-height: 43px; }
+
+      body[data-screen="quiz"] .topbar,
+      body[data-screen="contact"] .topbar,
+      body[data-screen="result"] .topbar {
+        display: none;
+      }
+
+      body[data-screen="quiz"] .main,
+      body[data-screen="contact"] .main,
+      body[data-screen="result"] .main {
+        padding-top: max(8px, env(safe-area-inset-top));
+      }
+
+      .quiz-layout { gap: 10px; }
+
+      .quiz-sidebar {
+        top: max(7px, env(safe-area-inset-top));
+        padding: 12px 14px;
+        border-radius: 15px;
+        box-shadow: 0 14px 34px rgba(0,0,0,.26);
+      }
+
+      .progress-label {
+        margin-bottom: 9px;
+        font-size: 12px;
+      }
+
+      .quiz-card {
+        min-height: auto;
+        padding: 23px 15px 22px;
+        border-radius: 23px;
+      }
+
+      .question-title { font-size: 29px; }
+      .option { min-height: 66px; }
+
+      #quizScreen .quiz-nav {
+        position: static;
+        display: grid;
+        grid-template-columns: minmax(108px, .72fr) minmax(0, 1.28fr);
+        gap: 10px;
+        margin-top: 22px;
+        padding: 0;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        backdrop-filter: none;
+      }
+
+      #quizScreen .back-btn {
+        min-height: 54px;
+        justify-content: center;
+        color: #a2aeaa;
+        background: rgba(255,255,255,.055);
+        border-radius: 15px;
+      }
+
+      #quizScreen .next-btn {
+        width: 100%;
+        min-width: 0;
+        min-height: 54px;
+      }
+
+      #quizScreen .back-btn[hidden] + .next-btn {
+        grid-column: 1 / -1;
+      }
+
+      #contactScreen .quiz-card {
+        padding-bottom: 22px;
+      }
+
+      #contactScreen .quiz-nav {
+        position: static;
+        margin-top: 14px;
+        padding: 0;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+      }
+
+      #contactScreen .back-btn {
+        width: 100%;
+        justify-content: center;
+        color: #a5b1ad;
+        background: rgba(255,255,255,.04);
+        border-radius: 14px;
+      }
+
+      .contact-summary { padding: 21px; }
+      .field input, .field select { min-height: 56px; }
+      .form-submit { min-height: 60px; }
+
+      .result-topline { gap: 14px; }
+      .result-visual { min-height: 350px; }
+      .result-copy { padding: 28px 19px; }
+      .result-title { font-size: 45px; }
+      .manager-followup {
+        grid-template-columns: 38px minmax(0, 1fr);
+        gap: 11px;
+        margin: 18px 0;
+        padding: 14px;
+      }
+      .manager-followup-icon { width: 38px; height: 38px; border-radius: 12px; }
+      .manager-followup p { font-size: 12.5px; }
+    }
+
+    @media (max-width: 390px) {
+      .visual-card { min-height: 458px; }
+      .product-stage { inset: 82px 6px 164px; }
+      .hero-product { max-height: 250px; }
+      .visual-spec b { font-size: 9px; }
+      .question-title { font-size: 27px; }
+    }
+
+  
+
+    /* =========================================================
+       VRN QUIZ — LIGHT / GREEN A/B VARIANT
+       Same structure and logic as short_5q_dark; visual system only.
+       ========================================================= */
+    :root {
+      --bg: #f5f9f3;
+      --bg-soft: #edf5ea;
+      --surface: #ffffff;
+      --surface-strong: #f1f7ee;
+      --text: #16211a;
+      --muted: #6d7d72;
+      --ink: #16211a;
+      --ink-muted: #68786d;
+      --accent: #74d955;
+      --accent-strong: #4eb532;
+      --accent-soft: rgba(78,181,50,.10);
+      --cyan: #86d9c5;
+      --line: #dce7d9;
+      --shadow: 0 24px 70px rgba(32,72,29,.10);
+    }
+
+    body {
+      color: var(--text);
+      background:
+        radial-gradient(circle at 10% 8%, rgba(116,217,85,.10), transparent 26%),
+        radial-gradient(circle at 92% 80%, rgba(134,217,197,.12), transparent 28%),
+        linear-gradient(145deg, #fbfdf9 0%, #f3f8f0 55%, #f8fbf6 100%);
+    }
+
+    body::before {
+      opacity: .45;
+      background-image:
+        linear-gradient(rgba(44,92,39,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(44,92,39,.025) 1px, transparent 1px);
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,.5), transparent 90%);
+    }
+
+    .page-shell::before { background: rgba(116,217,85,.13); }
+    .page-shell::after { background: rgba(134,217,197,.14); }
+
+    .topbar {
+      background: rgba(255,255,255,.88);
+      border-color: #e1eadf;
+      box-shadow: 0 14px 40px rgba(36,78,31,.07);
+    }
+
+    .brand img { filter: none; opacity: 1; }
+    .brand-fallback { color: #17331b; }
+    .brand-subtitle { color: #77877b; }
+    .support-link { color: #53635a; }
+    .support-link:hover { color: #172319; }
+    .support-dot { box-shadow: 0 0 0 6px rgba(78,181,50,.10), 0 0 18px rgba(78,181,50,.24); }
+
+    .quiz-sidebar {
+      color: #213026;
+    }
+    .progress-label { color: #728076; }
+    .progress-count { color: #1e2c22; }
+    .progress-track { background: #e4ece1; }
+    .progress-fill {
+      background: linear-gradient(90deg, #65c946, #79d5b8);
+      box-shadow: 0 0 14px rgba(78,181,50,.16);
+    }
+    .sidebar-benefit { color: #708075; }
+    .sidebar-benefit i {
+      color: #2c7f20;
+      background: #edf8e9;
+      border-color: #d7ebd1;
+    }
+    .sidebar-note { color: #8a978d; }
+
+    .quiz-card {
+      color: #172119;
+      background:
+        radial-gradient(circle at 104% -5%, rgba(116,217,85,.14), transparent 28%),
+        linear-gradient(155deg, #ffffff, #fbfdf9);
+      border: 1px solid #dfe9dc;
+      box-shadow: 0 28px 80px rgba(36,78,31,.10), inset 0 1px 0 rgba(255,255,255,.85);
+    }
+    .quiz-card::before {
+      background: linear-gradient(125deg, rgba(116,217,85,.035), transparent 26%);
+    }
+    .quiz-card::after { background: rgba(116,217,85,.12); }
+
+    .question-number { color: #82a078; }
+    .question-title { color: #172119; }
+    .question-hint { color: #718078; }
+
+    .option {
+      color: #26332a;
+      background: #ffffff;
+      border-color: #dce6da;
+      box-shadow: 0 4px 14px rgba(36,78,31,.025);
+    }
+    .option:hover {
+      color: #152019;
+      border-color: #b9d3b2;
+      background: #fbfef9;
+      box-shadow: 0 12px 28px rgba(36,78,31,.07);
+    }
+    .option.is-selected {
+      color: #183218;
+      border-color: rgba(78,181,50,.58);
+      background: linear-gradient(135deg, #f0fbeC, #f8fdf6);
+      box-shadow: 0 0 0 3px rgba(78,181,50,.08), 0 10px 24px rgba(36,78,31,.05);
+    }
+    .option-icon {
+      color: #5f7064;
+      background: #f0f4ef;
+      border-color: #e1e8df;
+    }
+    .option.is-selected .option-icon {
+      color: #163614;
+      background: #dff5d7;
+      border-color: #c9e9bf;
+    }
+    .option-check { border-color: #c8d4c5; }
+    .option.is-selected .option-check {
+      color: #10290d;
+      background: #83e261;
+      border-color: #69ca4a;
+    }
+
+    .primary-btn,
+    .form-submit,
+    .next-btn,
+    .result-link.primary {
+      color: #10250d;
+      background: linear-gradient(135deg, #95ea76 0%, #75d953 58%, #63c844 100%);
+      border-color: rgba(63,135,43,.20);
+      box-shadow: 0 13px 30px rgba(78,181,50,.18), inset 0 1px 0 rgba(255,255,255,.6);
+    }
+    .primary-btn:hover,
+    .form-submit:hover,
+    .next-btn:hover:not(:disabled) { background: linear-gradient(135deg, #a4ef88, #7cde5c); }
+
+    .back-btn { color: #6e7c72; }
+    .back-btn:hover { color: #1b281e; }
+
+    .field label { color: #607066; }
+    .field input,
+    .field select {
+      color: #1d2a21;
+      background: #ffffff;
+      border-color: #d9e4d7;
+      color-scheme: light;
+    }
+    .field input::placeholder { color: #98a49b; }
+    .field input:focus,
+    .field select:focus {
+      border-color: #6ecb51;
+      box-shadow: 0 0 0 4px rgba(78,181,50,.10);
+    }
+    .checkbox-line { color: #728077; }
+    .form-note { color: #8d9990; }
+    .form-error { color: #c84a4a; }
+
+    .result-topline p { color: #748178 !important; }
+    .eyebrow {
+      color: #3f9c2a;
+      background: #edf8e9;
+      border-color: #d7ebd1;
+      box-shadow: none;
+    }
+
+    .result-card {
+      color: #172119;
+      background: #ffffff;
+      border-color: #dfe9dc;
+      box-shadow: 0 30px 85px rgba(36,78,31,.11);
+    }
+    .result-badge {
+      color: #347e24;
+      background: #eff9eb;
+      border-color: #d6ebcf;
+    }
+    .result-title { color: #172119; }
+    .result-price { color: #66756b; }
+    .result-description { color: #68776e; }
+    .feature-list li { color: #37453b; }
+    .feature-list li::before { color: #54b83a; }
+
+    .manager-followup {
+      color: #213424;
+      background: linear-gradient(135deg, #effaeb, #f8fdf6);
+      border-color: #d2eacb;
+      box-shadow: none;
+    }
+    .manager-followup-icon {
+      color: #163614;
+      background: #83e261;
+      box-shadow: 0 8px 20px rgba(78,181,50,.12);
+    }
+    .manager-followup strong { color: #1f3022; }
+    .manager-followup p { color: #65766a; }
+
+    .result-link.secondary {
+      color: #27352b;
+      background: #ffffff;
+      border-color: #d8e4d5;
+    }
+    .result-link.secondary:hover { background: #f5faf2; }
+
+    .result-visual {
+      background:
+        radial-gradient(circle at 50% 42%, rgba(116,217,85,.18), transparent 36%),
+        radial-gradient(circle at 82% 14%, rgba(134,217,197,.13), transparent 30%),
+        linear-gradient(150deg, #f7fbf4, #edf6e9);
+      border-left-color: #e0e9dd;
+    }
+    .result-visual::before {
+      border-color: rgba(78,181,50,.18);
+      box-shadow: inset 0 0 80px rgba(78,181,50,.025);
+    }
+    .result-product-image { filter: drop-shadow(0 26px 28px rgba(45,80,39,.15)); }
+
+    .alternative-card {
+      color: #223026;
+      background: rgba(255,255,255,.80);
+      border-color: #dce7d9;
+      box-shadow: 0 12px 34px rgba(36,78,31,.055);
+    }
+    .alternative-card span { color: #718078; }
+    .alternative-card a { color: #3f9c2a; }
+    .footer-note { color: #829087; }
+
+    .toast {
+      color: #ffffff;
+      background: #28402d;
+      box-shadow: 0 14px 40px rgba(36,78,31,.20);
+    }
+
+    @media (max-width: 960px) {
+      .quiz-sidebar {
+        background: rgba(255,255,255,.92);
+        border-color: #dfe8dc;
+        box-shadow: 0 12px 30px rgba(36,78,31,.07);
+      }
+      .result-visual { border-bottom-color: #e0e9dd; }
+    }
+
+    @media (max-width: 640px) {
+      .topbar { background: rgba(255,255,255,.94); }
+      #quizScreen .back-btn {
+        color: #66756b;
+        background: #eef4ec;
+      }
+      #contactScreen .back-btn {
+        color: #66756b;
+        background: #f1f6ef;
+      }
+    }
+
+  </style>
+</head>
+<body data-screen="quiz">
+  <noscript>
+    <img height="1" width="1" style="display:none"
+      src="https://www.facebook.com/tr?id=1019395364056707&ev=PageView&noscript=1"
+      alt="" />
+  </noscript>
+  <div class="page-shell">
+    <header class="topbar">
+      <a class="brand" href="https://vrn.com.ua/" target="_blank" rel="noopener" aria-label="VRN — офіційний сайт">
+        <img src="https://vrn.com.ua/image/catalog/content/store/vrn.com.ua.svg" alt="VRN" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+        <span class="brand-fallback">VRN</span>
+        <span class="brand-subtitle">Стоматологічне обладнання</span>
+      </a>
+      <a class="support-link" href="tel:+380756368792">
+        <span class="support-dot"></span>
+        <span>Допомога з підбором: +38 (075) 636 87 92</span>
+      </a>
+    </header>
+
+    <main class="main">
+      <section class="screen" id="introScreen" aria-labelledby="introTitle">
+        <div class="intro-grid">
+          <div class="intro-copy">
+            <span class="eyebrow">Підбір за 30 секунд</span>
+            <h1 id="introTitle">Який скалер <span class="accent-text">VRN</span> підійде вашій практиці?</h1>
+            <p class="lead">5 коротких запитань — і ви одразу отримаєте персональну рекомендацію моделі під ваші процедури та бюджет.</p>
+
+            <div class="intro-actions">
+              <button class="primary-btn" type="button" id="startQuizBtn">
+                Підібрати скалер
+                <span class="button-arrow">→</span>
+              </button>
+            </div>
+
+            <div class="intro-meta" aria-label="Переваги підбору">
+              <span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/></svg>
+                5 коротких запитань
+              </span>
+              <span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 12 3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/></svg>
+                Рекомендація 1–2 моделей
+              </span>
+              <span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 4h10v16H7z" stroke="currentColor" stroke-width="2"/><path d="M9 8h6M9 12h6M9 16h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                Безкоштовне тестування
+              </span>
+            </div>
+          </div>
+
+          <div class="visual-card" aria-label="Моделі скалерів VRN">
+            <div class="floating-proof">
+              <span class="proof-icon">✓</span>
+              <span>Офіційна гарантія<br />та сервіс в Україні</span>
+            </div>
+            <div class="visual-orbit"></div>
+            <div class="visual-model-meta" aria-live="polite">
+              <span>Поточна модель</span>
+              <strong id="heroModelName">DQ-40</strong>
+              <span id="heroModelPrice">55 900 грн</span>
+            </div>
+            <div class="product-stage">
+              <img
+                class="hero-product"
+                id="heroProduct"
+                src="https://vrn.com.ua/image/cache/webp/catalog/content/scalery/DQ40-700x500.webp"
+                alt="Ультразвуковий скалер DQ-40"
+              />
+            </div>
+            <div class="visual-specs" aria-label="Переваги покупки">
+              <span class="visual-spec"><b>Тестування</b> до покупки</span>
+              <span class="visual-spec"><b>12 місяців</b> гарантії</span>
+              <span class="visual-spec"><b>Сервіс</b> в Україні</span>
+            </div>
+            <div class="model-tabs" role="tablist" aria-label="Моделі скалерів">
+              <button class="model-tab" type="button" data-model="q5">Q5</button>
+              <button class="model-tab is-active" type="button" data-model="dq40">DQ-40</button>
+              <button class="model-tab" type="button" data-model="q6">Q6</button>
+              <button class="model-tab" type="button" data-model="dq80">DQ-80</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen is-active" id="quizScreen" aria-live="polite">
+        <div class="quiz-layout">
+          <aside class="quiz-sidebar">
+            <div>
+              <div class="progress-label">Запитання <span class="progress-count" id="progressCount">1 із 8</span></div>
+              <div class="progress-track" aria-hidden="true">
+                <div class="progress-fill" id="progressFill"></div>
+              </div>
+
+              <div class="sidebar-benefits">
+                <div class="sidebar-benefit"><i>01</i><span>Порівняємо функціонал під ваші клінічні задачі</span></div>
+                <div class="sidebar-benefit"><i>02</i><span>Не рекомендуватимемо функції, за які немає сенсу переплачувати</span></div>
+                <div class="sidebar-benefit"><i>03</i><span>Запропонуємо тестування або демонстрацію обладнання</span></div>
+              </div>
+            </div>
+            <p class="sidebar-note">Ваші відповіді використовуються лише для персонального підбору обладнання.</p>
+          </aside>
+
+          <div class="quiz-card">
+            <div id="questionsContainer"></div>
+
+            <div class="quiz-nav" id="quizNav">
+              <button class="back-btn" type="button" id="backBtn" hidden>← Назад</button>
+              <button class="next-btn" type="button" id="nextBtn" disabled>Далі →</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="contactScreen" aria-live="polite">
+        <div class="quiz-layout">
+          <aside class="quiz-sidebar">
+            <div>
+              <div class="progress-label">Рекомендація <span class="progress-count">готова</span></div>
+              <div class="progress-track"><div class="progress-fill" style="width:100%"></div></div>
+            </div>
+            <p class="sidebar-note">Після відправлення форми ви одразу побачите рекомендовану модель.</p>
+          </aside>
+
+          <div class="quiz-card">
+            <div class="question-number">Фінальний крок</div>
+            <h2 class="question-title">Рекомендація вже готова</h2>
+            <p class="question-hint">Залиште ім’я та номер телефону — одразу покажемо рекомендовану модель. Менеджер отримає всі ваші відповіді разом із заявкою.</p>
+
+            <div class="contact-layout">
+              <form class="contact-form" id="leadForm" novalidate>
+                <div class="field-row">
+                  <div class="field">
+                    <label for="name">Ваше ім’я *</label>
+                    <input id="name" name="name" type="text" autocomplete="name" placeholder="Наприклад, Олена" required />
+                  </div>
+                  <div class="field">
+                    <label for="phone">Номер телефону *</label>
+                    <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+38 (___) ___-__-__" required />
+                  </div>
+                </div>
+
+                <label class="checkbox-line">
+                  <input type="checkbox" id="consent" required />
+                  <span>Погоджуюсь на обробку контактних даних для консультації та підбору обладнання.</span>
+                </label>
+
+                <div class="form-error" id="formError" role="alert"></div>
+                <button class="form-submit" type="submit" id="submitBtn">Показати рекомендацію →</button>
+                <div class="form-note">Без оплати та зобов’язань. Менеджер зв’яжеться після заявки.</div>
+              </form>
+            </div>
+
+            <div class="quiz-nav">
+              <button class="back-btn" type="button" id="contactBackBtn">← Змінити відповіді</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="resultScreen" aria-live="polite">
+        <div class="result-shell">
+          <div class="result-topline">
+            <div>
+              <span class="eyebrow">Рекомендація готова</span>
+              <p style="margin-top:12px">Модель підібрана на основі ваших відповідей</p>
+            </div>
+            <button class="secondary-btn" id="restartBtn" type="button">Пройти ще раз</button>
+          </div>
+
+          <div class="result-card">
+            <div class="result-copy">
+              <span class="result-badge">Ваша рекомендована модель</span>
+              <h2 class="result-title" id="resultTitle">DQ-40</h2>
+              <div class="result-price" id="resultPrice">55 900 грн</div>
+
+              <div class="manager-followup" role="status">
+                <span class="manager-followup-icon">✓</span>
+                <div>
+                  <strong>Заявку отримано</strong>
+                  <p id="managerFollowupText">Менеджер VRN зв’яжеться з вами та допоможе з наступним кроком.</p>
+                </div>
+              </div>
+
+              <p class="result-description" id="resultDescription"></p>
+              <ul class="feature-list" id="resultFeatures"></ul>
+              <div class="result-actions">
+                <a class="result-link primary" id="productLink" href="https://vrn.com.ua/" target="_blank" rel="noopener">Переглянути модель →</a>
+                <a class="result-link secondary" id="testDriveLink" href="tel:+380756368792">Зателефонувати VRN</a>
+              </div>
+            </div>
+            <div class="result-visual">
+              <img class="result-product-image" id="resultImage" src="" alt="" />
+            </div>
+          </div>
+
+          <div class="alternative-card">
+            <div>
+              <strong id="alternativeTitle">Альтернативна модель</strong>
+              <span id="alternativeText"></span>
+            </div>
+            <a id="alternativeLink" href="https://vrn.com.ua/" target="_blank" rel="noopener">Переглянути →</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer-note">VRN — професійне стоматологічне обладнання. Дані про ціни та наявність варто перевіряти перед запуском реклами.</footer>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    'use strict';
+
+    const CONFIG = {
+      metaPixelId: '1019395364056707',
+      // Production n8n webhook for VRN quiz leads.
+      webhookUrl: 'https://polishchuk.app.n8n.cloud/webhook/vrn-quiz-light-lead',
+      requestTimeoutMs: 9000,
+      localStorageLeadKey: 'vrn_quiz_light_leads_v1',
+      localStorageAnswersKey: 'vrn_quiz_answers_short_5q_light_v1'
+    };
+
+    const PRODUCTS = {
+      q5: {
+        id: 'q5',
+        name: 'VRN Q5',
+        price: '19 900 грн',
+        image: 'https://vrn.com.ua/image/cache/webp/catalog/content/scalery/q5-700x500.webp',
+        url: 'https://vrn.com.ua/ultrazvukove-obladnannia/ultrazvukovyi-skaler-vrn-q5-ua',
+        description: 'Оптимальний вибір, якщо потрібен універсальний ультразвуковий скалер без системи повітряного полірування. Підходить для гігієни, пародонтології та ендодонтії.',
+        features: ['3 режими: гігієна, періо, ендо', 'Intelligent Vibration Technology', 'Бездротова педаль', 'LED-підсвічування', 'Широкий комплект насадок', 'Дві колби для рідини'],
+        availability: 'in_stock'
+      },
+      dq40: {
+        id: 'dq40',
+        name: 'DQ-40',
+        price: '55 900 грн',
+        image: 'https://vrn.com.ua/image/cache/webp/catalog/content/scalery/DQ40-700x500.webp',
+        url: 'https://vrn.com.ua/ultrazvukove-obladnannia/ultrazvukovyi-skaler-dq-40-ua',
+        description: 'Раціональне комбіноване рішення для клініки: ультразвуковий скейлінг і повітряне полірування в одному апараті без переходу в преміальний бюджет.',
+        features: ['Ультразвук + Air Flow', 'Автовизначення наконечника', 'Регулювання подачі порошку', 'Автоматичне очищення каналів', 'Бездротова педаль', 'LED-підсвічування'],
+        availability: 'in_stock'
+      },
+      q6: {
+        id: 'q6',
+        name: 'VRN Q6',
+        price: '79 000 грн',
+        image: 'https://vrn.com.ua/image/cache/webp/catalog/content/scalery/Q6-700x500.webp',
+        url: 'https://vrn.com.ua/ultrazvukove-obladnannia/ultrazvukovyi-skaler-vrn-q6-ua',
+        description: 'Комплексне рішення «6 в 1» для гігієни, пародонтології, ендодонтії, імплантів та над- і під’ясеневого повітряного полірування.',
+        features: ['Формат 6 в 1', 'Air Flow + Perio Flow', '2 колби для порошку', '2 колби для рідини', 'Робота з антисептиками', 'Автоочищення за 30 секунд'],
+        availability: 'check_availability'
+      },
+      dq80: {
+        id: 'dq80',
+        name: 'DQ-80',
+        price: '99 900 грн',
+        image: 'data:image/webp;base64,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',
+        url: 'https://vrn.com.ua/ultrazvukove-obladnannia/ultrazvukovyi-skaler-dq-80-ua',
+        description: 'Преміальний комбінований апарат для інтенсивної роботи, коли важливі розширене керування, великий сенсорний екран і максимальний комфорт лікаря.',
+        features: ['7-дюймовий сенсорний екран', 'Ультразвук + Air Flow', 'ARM-процесор і пам’ять режимів', 'Автоочищення подвійного каналу', 'Потужне зворотне продування', 'Професійна педаль'],
+        availability: 'in_stock'
+      }
+    };
+
+    const QUESTIONS = [
+      {
+        id: 'currentEquipment',
+        title: 'Яке обладнання використовуєте зараз?',
+        hint: 'Почнемо з вашої поточної ситуації — це допоможе зрозуміти, який апгрейд буде найбільш релевантним.',
+        type: 'single',
+        options: [
+          ['separate_devices', 'Окремий скалер та окремий содоструй', '02'],
+          ['combined', 'Комбінований апарат', '2×'],
+          ['none', 'Обладнання ще немає', '—'],
+          ['other', 'Інший варіант', '…']
+        ]
+      },
+      {
+        id: 'airflow',
+        title: 'Чи потрібна система повітряного полірування?',
+        hint: 'Один вибір — і ми одразу звузимо перелік релевантних моделей.',
+        type: 'single',
+        options: [
+          ['required', 'Так, обов’язково', '✓'],
+          ['preferred', 'Бажано мати', '+'],
+          ['no', 'Ні, потрібен лише ультразвук', 'UZ'],
+          ['unknown', 'Поки не визначився / не визначилась', '?']
+        ]
+      },
+      {
+        id: 'procedures',
+        title: 'Для яких процедур потрібне обладнання?',
+        hint: 'Можна обрати декілька варіантів.',
+        type: 'multi',
+        options: [
+          ['hygiene', 'Гігієна', 'GH'],
+          ['perio', 'Пародонтологія', 'PR'],
+          ['endo', 'Ендодонтія', 'EN'],
+          ['implants', 'Робота з імплантатами', 'IM'],
+          ['braces_crowns', 'Робота з брекетами та коронками', 'BC'],
+          ['multiple', 'Декілька напрямків', '6×']
+        ]
+      },
+      {
+        id: 'problems',
+        title: 'Що найбільше хочете покращити?',
+        hint: 'Оберіть до трьох найважливіших пунктів.',
+        type: 'multi',
+        max: 3,
+        options: [
+          ['power', 'Стабільність потужності', '⚡'],
+          ['comfort', 'Комфорт пацієнта', '♡'],
+          ['clogging', 'Менше засмічень порошком', '↺'],
+          ['control', 'Зручніше керування', 'UI'],
+          ['two_devices', 'Замінити два апарати одним', '2→1'],
+          ['easy_care', 'Легкість у догляді', 'EC'],
+          ['service', 'Надійний сервіс і гарантія', 'SV']
+        ]
+      },
+      {
+        id: 'budget',
+        title: 'Який бюджет розглядаєте?',
+        hint: 'Щоб не рекомендувати модель, яка завідомо не підходить за бюджетом.',
+        type: 'single',
+        options: [
+          ['under25', 'До 25 000 грн', '₴'],
+          ['40to65', '40 000–65 000 грн', '₴₴'],
+          ['65to85', '65 000–85 000 грн', '₴₴₴'],
+          ['85to110', '85 000–110 000 грн', 'MAX'],
+          ['installments', 'Розглядаю оплату частинами', '%'],
+          ['unknown', 'Ще не визначився / не визначилась', '?']
+        ]
+      }
+    ];
+
+    const state = {
+      currentStep: 0,
+      answers: {},
+      recommendation: null,
+      leadScore: null,
+      startedAt: null,
+      quizStartedTracked: false,
+      viewedSteps: new Set(),
+      completedSteps: new Set()
+    };
+
+    const introScreen = document.getElementById('introScreen');
+    const quizScreen = document.getElementById('quizScreen');
+    const contactScreen = document.getElementById('contactScreen');
+    const resultScreen = document.getElementById('resultScreen');
+    const questionsContainer = document.getElementById('questionsContainer');
+    const progressCount = document.getElementById('progressCount');
+    const progressFill = document.getElementById('progressFill');
+    const nextBtn = document.getElementById('nextBtn');
+    const backBtn = document.getElementById('backBtn');
+    const toast = document.getElementById('toast');
+
+    function showScreen(screen) {
+      [introScreen, quizScreen, contactScreen, resultScreen].forEach(el => el.classList.remove('is-active'));
+      screen.classList.add('is-active');
+      const screenName = screen.id.replace('Screen', '').toLowerCase();
+      document.body.dataset.screen = screenName;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    const META_CUSTOM_EVENTS = {
+      quiz_start: 'QuizStart',
+      quiz_step_complete: 'QuizStepComplete',
+      quiz_complete: 'QuizComplete',
+      contact_form_view: 'ContactFormView',
+      quiz_restart: 'QuizRestart',
+      product_link_click: 'ProductLinkClick',
+      contact_action_click: 'ContactActionClick'
+    };
+
+    const QUIZ_VARIANT = 'short_5q_light';
+
+    function prepareMetaParams(params = {}) {
+      return Object.fromEntries(
+        Object.entries(params)
+          .filter(([, value]) => value !== undefined && value !== null && value !== '')
+          .map(([key, value]) => {
+            if (Array.isArray(value)) return [key, value.join(',')];
+            if (typeof value === 'object') return [key, JSON.stringify(value)];
+            return [key, value];
+          })
+      );
+    }
+
+    function track(event, params = {}) {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({ event, ...params });
+
+      if (typeof window.fbq !== 'function') return;
+
+      if (event === 'view_content') {
+        window.fbq('track', 'ViewContent', prepareMetaParams(params));
+        return;
+      }
+
+      if (event === 'generate_lead') {
+        window.fbq('track', 'Lead', prepareMetaParams(params));
+        return;
+      }
+
+      const metaEventName = META_CUSTOM_EVENTS[event] || event;
+      window.fbq('trackCustom', metaEventName, prepareMetaParams(params));
+    }
+
+    function captureAttribution() {
+      const url = new URL(window.location.href);
+      const keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'fbclid', 'gclid'];
+      const data = {};
+      keys.forEach(key => {
+        const value = url.searchParams.get(key);
+        if (value) data[key] = value;
+      });
+      return data;
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('is-visible');
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => toast.classList.remove('is-visible'), 2600);
+    }
+
+    function renderQuestions() {
+      questionsContainer.innerHTML = QUESTIONS.map((question, index) => {
+        const options = question.options.map(([value, label, icon]) => `
+          <button
+            type="button"
+            class="option"
+            data-question="${question.id}"
+            data-value="${value}"
+            aria-pressed="false"
+          >
+            <span class="option-icon">${icon}</span>
+            <span class="option-text">${label}</span>
+            <span class="option-check">✓</span>
+          </button>
+        `).join('');
+
+        return `
+          <article class="question-slide ${index === 0 ? 'is-active' : ''}" data-step="${index}">
+            <div class="question-number">Запитання ${index + 1}</div>
+            <h2 class="question-title">${question.title}</h2>
+            <p class="question-hint">${question.hint}</p>
+            <div class="options-grid">${options}</div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function startQuiz() {
+      state.startedAt = Date.now();
+      state.quizStartedTracked = true;
+      showScreen(quizScreen);
+      updateStepUI();
+      track('quiz_start', {
+        quiz_name: 'vrn_scaler_selector',
+        quiz_variant: QUIZ_VARIANT,
+        total_steps: QUESTIONS.length,
+        content_category: 'ultrasonic_scalers',
+        entry_model: productTabs[activeHeroIndex]?.dataset.model || 'dq40'
+      });
+    }
+
+    function trackStepView() {
+      const stepNumber = state.currentStep + 1;
+      if (state.viewedSteps.has(stepNumber)) return;
+      state.viewedSteps.add(stepNumber);
+      const question = QUESTIONS[state.currentStep];
+      track(`QuizStep${stepNumber}`, {
+        quiz_name: 'vrn_scaler_selector',
+        quiz_variant: QUIZ_VARIANT,
+        step_number: stepNumber,
+        total_steps: QUESTIONS.length,
+        question_id: question.id
+      });
+    }
+
+    function ensureQuizStarted() {
+      if (state.quizStartedTracked) return;
+      state.quizStartedTracked = true;
+      state.startedAt = Date.now();
+      track('quiz_start', {
+        quiz_name: 'vrn_scaler_selector',
+        quiz_variant: QUIZ_VARIANT,
+        total_steps: QUESTIONS.length,
+        content_category: 'ultrasonic_scalers',
+        entry_model: productTabs[activeHeroIndex]?.dataset.model || 'dq40'
+      });
+    }
+
+    function updateStepUI() {
+      document.querySelectorAll('.question-slide').forEach((slide, index) => {
+        slide.classList.toggle('is-active', index === state.currentStep);
+      });
+
+      const currentQuestion = QUESTIONS[state.currentStep];
+      const progress = ((state.currentStep + 1) / QUESTIONS.length) * 100;
+      progressCount.textContent = `${state.currentStep + 1} із ${QUESTIONS.length}`;
+      progressFill.style.width = `${progress}%`;
+      backBtn.hidden = state.currentStep === 0;
+      nextBtn.textContent = state.currentStep === QUESTIONS.length - 1 ? 'Отримати результат →' : 'Далі →';
+      nextBtn.disabled = !hasAnswer(currentQuestion.id);
+      restoreSelections(currentQuestion.id);
+      trackStepView();
+    }
+
+    function hasAnswer(questionId) {
+      const answer = state.answers[questionId];
+      return Array.isArray(answer) ? answer.length > 0 : Boolean(answer);
+    }
+
+    function restoreSelections(questionId) {
+      const answer = state.answers[questionId];
+      document.querySelectorAll(`[data-question="${questionId}"]`).forEach(option => {
+        const selected = Array.isArray(answer) ? answer.includes(option.dataset.value) : answer === option.dataset.value;
+        option.classList.toggle('is-selected', selected);
+        option.setAttribute('aria-pressed', String(selected));
+      });
+    }
+
+    function selectOption(option) {
+      ensureQuizStarted();
+      const questionId = option.dataset.question;
+      const value = option.dataset.value;
+      const question = QUESTIONS.find(item => item.id === questionId);
+
+      if (question.type === 'multi') {
+        const current = Array.isArray(state.answers[questionId]) ? [...state.answers[questionId]] : [];
+        const index = current.indexOf(value);
+
+        if (index >= 0) {
+          current.splice(index, 1);
+        } else {
+          if (question.max && current.length >= question.max) {
+            showToast(`Можна обрати максимум ${question.max} варіанти`);
+            return;
+          }
+          current.push(value);
+        }
+        state.answers[questionId] = current;
+      } else {
+        state.answers[questionId] = value;
+      }
+
+      saveAnswers();
+      restoreSelections(questionId);
+      nextBtn.disabled = !hasAnswer(questionId);
+
+      // Single-choice questions advance automatically on every device.
+      if (question.type === 'single') {
+        clearTimeout(selectOption.timer);
+        selectOption.timer = setTimeout(() => goNext(), 260);
+      }
+    }
+
+    function goNext() {
+      const question = QUESTIONS[state.currentStep];
+      if (!hasAnswer(question.id)) return;
+
+      const stepNumber = state.currentStep + 1;
+      if (!state.completedSteps.has(stepNumber)) {
+        state.completedSteps.add(stepNumber);
+        const stepParams = {
+          quiz_name: 'vrn_scaler_selector',
+          quiz_variant: QUIZ_VARIANT,
+          step_number: stepNumber,
+          total_steps: QUESTIONS.length,
+          question_id: question.id,
+          answer: state.answers[question.id],
+          progress_percent: Math.round((stepNumber / QUESTIONS.length) * 100)
+        };
+        track('quiz_step_complete', stepParams);
+        track(`QuizStep${stepNumber}Complete`, stepParams);
+      }
+
+      if (state.currentStep < QUESTIONS.length - 1) {
+        state.currentStep += 1;
+        updateStepUI();
+      } else {
+        state.recommendation = calculateRecommendation();
+        showScreen(contactScreen);
+        track('quiz_complete', {
+          quiz_name: 'vrn_scaler_selector',
+          quiz_variant: QUIZ_VARIANT,
+          total_steps: QUESTIONS.length,
+          recommended_model: state.recommendation.primary.id,
+          recommended_model_name: state.recommendation.primary.name
+        });
+        track('contact_form_view', {
+          quiz_name: 'vrn_scaler_selector',
+          quiz_variant: QUIZ_VARIANT,
+          recommended_model: state.recommendation.primary.id
+        });
+      }
+    }
+
+    function goBack() {
+      if (state.currentStep > 0) {
+        state.currentStep -= 1;
+        updateStepUI();
+      }
+    }
+
+    function scoreProducts() {
+      const score = { q5: 0, dq40: 0, q6: 0, dq80: 0 };
+      const a = state.answers;
+      const procedures = a.procedures || [];
+      const problems = a.problems || [];
+
+      procedures.forEach(item => {
+        if (item === 'hygiene') { score.q5 += 2; score.dq40 += 2; score.q6 += 2; score.dq80 += 2; }
+        if (item === 'perio') { score.q5 += 1; score.dq40 += 2; score.q6 += 3; score.dq80 += 3; }
+        if (item === 'endo') { score.q5 += 3; score.dq40 += 1; score.q6 += 3; score.dq80 += 1; }
+        if (item === 'implants') { score.q5 += 1; score.dq40 += 2; score.q6 += 3; score.dq80 += 3; }
+        if (item === 'braces_crowns') { score.q5 += 1; score.dq40 += 3; score.q6 += 4; score.dq80 += 4; }
+        if (item === 'multiple') { score.q5 += 1; score.dq40 += 2; score.q6 += 4; score.dq80 += 3; }
+      });
+
+      if (a.airflow === 'required') { score.q5 -= 12; score.dq40 += 6; score.q6 += 7; score.dq80 += 7; }
+      if (a.airflow === 'preferred') { score.q5 -= 3; score.dq40 += 4; score.q6 += 4; score.dq80 += 4; }
+      if (a.airflow === 'no') { score.q5 += 9; score.dq40 -= 2; score.q6 -= 3; score.dq80 -= 3; }
+      if (a.airflow === 'unknown') { score.q5 += 1; score.dq40 += 2; score.q6 += 1; score.dq80 += 1; }
+
+      if (a.currentEquipment === 'separate_devices') { score.dq40 += 5; score.q6 += 5; score.dq80 += 5; }
+      if (a.currentEquipment === 'combined') { score.q6 += 2; score.dq80 += 5; }
+      if (a.currentEquipment === 'none') { score.q5 += 3; score.dq40 += 2; }
+
+      problems.forEach(item => {
+        if (item === 'power') { score.q5 += 2; score.dq40 += 2; score.q6 += 2; score.dq80 += 3; }
+        if (item === 'comfort') { score.q5 += 2; score.dq40 += 2; score.q6 += 2; score.dq80 += 3; }
+        if (item === 'clogging') { score.dq40 += 3; score.q6 += 3; score.dq80 += 5; }
+        if (item === 'control') { score.q5 += 1; score.dq40 += 2; score.q6 += 3; score.dq80 += 5; }
+        if (item === 'two_devices') { score.dq40 += 5; score.q6 += 5; score.dq80 += 5; }
+        if (item === 'easy_care') { score.q5 += 2; score.dq40 += 3; score.q6 += 4; score.dq80 += 4; }
+        if (item === 'service') { score.q5 += 1; score.dq40 += 1; score.q6 += 1; score.dq80 += 1; }
+      });
+
+      if (a.budget === 'under25') { score.q5 += 15; score.dq40 -= 8; score.q6 -= 10; score.dq80 -= 12; }
+      if (a.budget === '40to65') { score.q5 += 1; score.dq40 += 13; score.q6 -= 2; score.dq80 -= 7; }
+      if (a.budget === '65to85') { score.dq40 += 4; score.q6 += 12; score.dq80 += 2; }
+      if (a.budget === '85to110') { score.q6 += 4; score.dq80 += 13; }
+      if (a.budget === 'installments') { score.dq40 += 3; score.q6 += 5; score.dq80 += 6; }
+
+      return score;
+    }
+
+    function calculateLeadScore() {
+      // Short experiment intentionally removes timeline / role / next-step qualification.
+      // Leave lead quality blank rather than inventing a weaker score.
+      return null;
+    }
+
+    function calculateRecommendation() {
+      const scores = scoreProducts();
+      const ranking = Object.entries(scores)
+        .sort(([, scoreA], [, scoreB]) => scoreB - scoreA)
+        .map(([id, score]) => ({ ...PRODUCTS[id], score }));
+
+      state.leadScore = calculateLeadScore();
+      return { primary: ranking[0], alternative: ranking[1], scores };
+    }
+
+    function saveAnswers() {
+      try {
+        localStorage.setItem(CONFIG.localStorageAnswersKey, JSON.stringify({ answers: state.answers, currentStep: state.currentStep }));
+      } catch (_) {}
+    }
+
+    function clearSavedAnswers() {
+      try { localStorage.removeItem(CONFIG.localStorageAnswersKey); } catch (_) {}
+    }
+
+    function formatPhone(value) {
+      const digits = value.replace(/\D/g, '').slice(0, 12);
+      let normalized = digits;
+      if (normalized.startsWith('0')) normalized = '38' + normalized;
+      if (!normalized.startsWith('38') && normalized.length > 0) normalized = '38' + normalized;
+      normalized = normalized.slice(0, 12);
+
+      const country = normalized.slice(0, 2);
+      const area = normalized.slice(2, 5);
+      const first = normalized.slice(5, 8);
+      const second = normalized.slice(8, 10);
+      const third = normalized.slice(10, 12);
+
+      let output = country ? `+${country}` : '';
+      if (area) output += ` (${area}`;
+      if (area.length === 3) output += ')';
+      if (first) output += ` ${first}`;
+      if (second) output += `-${second}`;
+      if (third) output += `-${third}`;
+      return output;
+    }
+
+    function validateLeadForm() {
+      const name = document.getElementById('name');
+      const phone = document.getElementById('phone');
+      const consent = document.getElementById('consent');
+      const error = document.getElementById('formError');
+      [name, phone].forEach(input => input.classList.remove('is-invalid'));
+      error.textContent = '';
+
+      if (name.value.trim().length < 2) {
+        name.classList.add('is-invalid');
+        error.textContent = 'Вкажіть, будь ласка, ім’я.';
+        name.focus();
+        return false;
+      }
+
+      const phoneDigits = phone.value.replace(/\D/g, '');
+      if (phoneDigits.length < 12) {
+        phone.classList.add('is-invalid');
+        error.textContent = 'Перевірте номер телефону.';
+        phone.focus();
+        return false;
+      }
+
+      if (!consent.checked) {
+        error.textContent = 'Потрібна згода на обробку контактних даних.';
+        consent.focus();
+        return false;
+      }
+
+      return true;
+    }
+
+    function getAnswerLabels() {
+      return Object.fromEntries(QUESTIONS.map(question => {
+        const raw = state.answers[question.id];
+        const labelMap = Object.fromEntries(question.options.map(([value, label]) => [value, label]));
+        const readable = Array.isArray(raw) ? raw.map(value => labelMap[value] || value) : (labelMap[raw] || raw || null);
+        return [question.id, readable];
+      }));
+    }
+
+    function buildLeadPayload() {
+      const recommendation = state.recommendation || calculateRecommendation();
+      return {
+        event: 'vrn_quiz_lead',
+        quizVariant: QUIZ_VARIANT,
+        createdAt: new Date().toISOString(),
+        pageUrl: window.location.href,
+        referrer: document.referrer || null,
+        attribution: captureAttribution(),
+        contact: {
+          name: document.getElementById('name').value.trim(),
+          phone: document.getElementById('phone').value.trim(),
+          city: '',
+          preferredContact: ''
+        },
+        answers: state.answers,
+        answerLabels: getAnswerLabels(),
+        recommendation: {
+          primary: recommendation.primary.id,
+          primaryName: recommendation.primary.name,
+          alternative: recommendation.alternative.id,
+          alternativeName: recommendation.alternative.name,
+          scores: recommendation.scores
+        },
+        qualification: {
+          leadScore: null,
+          leadTier: '',
+          elapsedSeconds: state.startedAt ? Math.round((Date.now() - state.startedAt) / 1000) : null
+        }
+      };
+    }
+
+    async function sendLead(payload) {
+      if (!CONFIG.webhookUrl) {
+        // Test mode: keep leads in browser storage until a real endpoint is connected.
+        try {
+          const leads = JSON.parse(localStorage.getItem(CONFIG.localStorageLeadKey) || '[]');
+          leads.push(payload);
+          localStorage.setItem(CONFIG.localStorageLeadKey, JSON.stringify(leads.slice(-50)));
+        } catch (_) {}
+        console.info('[VRN quiz lead — test mode]', payload);
+        return { ok: true, mode: 'local_test' };
+      }
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), CONFIG.requestTimeoutMs);
+      try {
+        const response = await fetch(CONFIG.webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: controller.signal
+        });
+        if (!response.ok) throw new Error(`Webhook returned ${response.status}`);
+        return { ok: true, mode: 'webhook' };
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    function renderResult() {
+      const { primary, alternative } = state.recommendation;
+      document.getElementById('resultTitle').textContent = primary.name;
+      document.getElementById('resultPrice').textContent = primary.price + (primary.availability === 'check_availability' ? ' · уточнити наявність' : '');
+      document.getElementById('resultDescription').textContent = primary.description;
+      document.getElementById('resultFeatures').innerHTML = primary.features.map(feature => `<li>${feature}</li>`).join('');
+      document.getElementById('resultImage').src = primary.image;
+      document.getElementById('resultImage').alt = primary.name;
+      document.getElementById('productLink').href = primary.url;
+      document.getElementById('managerFollowupText').textContent = 'Менеджер VRN зв’яжеться з вами найближчим часом, щоб допомогти з тестуванням, порівнянням моделей та умовами оплати.';
+      document.getElementById('testDriveLink').textContent = 'Зателефонувати VRN';
+
+      document.getElementById('alternativeTitle').textContent = `Альтернатива: ${alternative.name} — ${alternative.price}`;
+      document.getElementById('alternativeText').textContent = getAlternativeReason(primary, alternative);
+      document.getElementById('alternativeLink').href = alternative.url;
+    }
+
+    function getAlternativeReason(primary, alternative) {
+      const budget = state.answers.budget;
+      if (alternative.id === 'q5') return 'Підійде, якщо система повітряного полірування не є обов’язковою і важливо зменшити бюджет.';
+      if (alternative.id === 'dq40') return 'Раціональніший за бюджетом комбінований варіант з ультразвуком та Air Flow.';
+      if (alternative.id === 'q6') return 'Більше клінічних сценаріїв і два типи повітряного полірування; перед замовленням потрібно уточнити наявність.';
+      if (alternative.id === 'dq80') return budget === '85to110'
+        ? 'Преміальніше керування та максимальний комфорт для інтенсивної щоденної роботи.'
+        : 'Має сенс, якщо готові інвестувати у сенсорне керування і розширений комфорт роботи.';
+      return `Ще один релевантний варіант для ваших задач поряд із ${primary.name}.`;
+    }
+
+    function resetQuiz() {
+      state.currentStep = 0;
+      state.answers = {};
+      state.recommendation = null;
+      state.leadScore = null;
+      state.startedAt = null;
+      state.quizStartedTracked = false;
+      state.viewedSteps = new Set();
+      state.completedSteps = new Set();
+      clearSavedAnswers();
+      document.getElementById('leadForm').reset();
+      document.querySelectorAll('.option').forEach(option => {
+        option.classList.remove('is-selected');
+        option.setAttribute('aria-pressed', 'false');
+      });
+      showScreen(quizScreen);
+      updateStepUI();
+      track('quiz_restart');
+    }
+
+    // Product rotation on the intro screen.
+    const heroProduct = document.getElementById('heroProduct');
+    const heroModelName = document.getElementById('heroModelName');
+    const heroModelPrice = document.getElementById('heroModelPrice');
+    const productTabs = [...document.querySelectorAll('.model-tab')];
+    let activeHeroIndex = 1;
+    let heroTimer;
+
+    function switchHeroProduct(modelId) {
+      const product = PRODUCTS[modelId];
+      if (!product) return;
+      heroProduct.style.opacity = '0';
+      setTimeout(() => {
+        heroProduct.src = product.image;
+        heroProduct.alt = `Ультразвуковий скалер ${product.name}`;
+        if (heroModelName) heroModelName.textContent = product.name;
+        if (heroModelPrice) heroModelPrice.textContent = product.price;
+        heroProduct.style.opacity = '1';
+      }, 100);
+      productTabs.forEach(tab => tab.classList.toggle('is-active', tab.dataset.model === modelId));
+      activeHeroIndex = productTabs.findIndex(tab => tab.dataset.model === modelId);
+    }
+
+    function startHeroRotation() {
+      clearInterval(heroTimer);
+      heroTimer = setInterval(() => {
+        activeHeroIndex = (activeHeroIndex + 1) % productTabs.length;
+        switchHeroProduct(productTabs[activeHeroIndex].dataset.model);
+      }, 2000);
+    }
+
+    // Event listeners.
+    renderQuestions();
+    updateStepUI();
+    heroProduct.style.transition = 'opacity .14s ease';
+
+    document.getElementById('startQuizBtn').addEventListener('click', startQuiz);
+    questionsContainer.addEventListener('click', event => {
+      const option = event.target.closest('.option');
+      if (option) selectOption(option);
+    });
+    nextBtn.addEventListener('click', goNext);
+    backBtn.addEventListener('click', goBack);
+    document.getElementById('contactBackBtn').addEventListener('click', () => {
+      showScreen(quizScreen);
+      state.currentStep = QUESTIONS.length - 1;
+      updateStepUI();
+    });
+    document.getElementById('restartBtn').addEventListener('click', resetQuiz);
+    document.getElementById('testDriveLink').addEventListener('click', () => {
+      track('contact_action_click', {
+        action: 'phone_call',
+        quiz_variant: QUIZ_VARIANT,
+        recommended_model: state.recommendation?.primary?.id || ''
+      });
+    });
+    document.getElementById('productLink').addEventListener('click', () => {
+      track('product_link_click', {
+        link_type: 'recommended_model',
+        model: state.recommendation?.primary?.id || ''
+      });
+    });
+    document.getElementById('alternativeLink').addEventListener('click', () => {
+      track('product_link_click', {
+        link_type: 'alternative_model',
+        model: state.recommendation?.alternative?.id || ''
+      });
+    });
+
+    document.getElementById('phone').addEventListener('input', event => {
+      event.target.value = formatPhone(event.target.value);
+    });
+
+    document.getElementById('leadForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      if (!validateLeadForm()) return;
+
+      const submitBtn = document.getElementById('submitBtn');
+      const formError = document.getElementById('formError');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Надсилаємо…';
+      formError.textContent = '';
+
+      const payload = buildLeadPayload();
+      try {
+        const response = await sendLead(payload);
+        clearSavedAnswers();
+        renderResult();
+        showScreen(resultScreen);
+        track('generate_lead', {
+          content_name: `VRN scaler quiz — ${payload.recommendation.primaryName}`,
+          content_category: 'dental_equipment_lead',
+          content_ids: [payload.recommendation.primary],
+          content_type: 'product',
+          recommended_model: payload.recommendation.primary,
+          recommended_model_name: payload.recommendation.primaryName,
+          alternative_model: payload.recommendation.alternative,
+          quiz_variant: QUIZ_VARIANT,
+          total_steps: QUESTIONS.length,
+          submission_mode: response.mode,
+          utm_source: payload.attribution.utm_source || '',
+          utm_campaign: payload.attribution.utm_campaign || ''
+        });
+      } catch (error) {
+        console.error(error);
+        formError.textContent = 'Не вдалося надіслати заявку. Перевірте з’єднання або зателефонуйте нам.';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Показати рекомендацію →';
+      }
+    });
+
+    productTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        switchHeroProduct(tab.dataset.model);
+        startHeroRotation();
+      });
+    });
+    startHeroRotation();
+
+    track('view_content', {
+      content_name: 'VRN scaler selector quiz',
+      content_category: 'ultrasonic_scalers',
+      content_ids: ['q5', 'dq40', 'q6', 'dq80'],
+      content_type: 'product_group',
+      quiz_variant: QUIZ_VARIANT,
+      total_steps: QUESTIONS.length
+    });
+
+    // Keyboard support: Enter advances when an answer is selected.
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Enter' && quizScreen.classList.contains('is-active') && !nextBtn.disabled) {
+        event.preventDefault();
+        goNext();
+      }
+    });
+  </script>
+</body>
+</html>
